@@ -1,0 +1,6 @@
+@Cognitask.Api_HostAddress = http://localhost:5199
+
+GET {{Cognitask.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
