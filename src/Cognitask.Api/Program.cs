@@ -71,6 +71,14 @@ builder.Services.AddScoped<
     AuthService>();
 
 builder.Services.AddScoped<
+    IProjectRepository,
+    ProjectRepository>();
+
+builder.Services.AddScoped<
+    IProjectService,
+    ProjectService>();
+
+builder.Services.AddScoped<
     IPasswordHasher<User>,
     PasswordHasher<User>>();
 
