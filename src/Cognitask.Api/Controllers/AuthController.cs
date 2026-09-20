@@ -11,7 +11,7 @@ namespace Cognitask.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-
+        
     public AuthController(IAuthService authService)
     {
         _authService = authService;
@@ -21,61 +21,31 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Register(
         RegisterRequest request)
     {
-        try
-        {
-            var response =
-                await _authService.RegisterAsync(request);
+        var response =
+            await _authService.RegisterAsync(request);
 
-            return Ok(response);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(
         LoginRequest request)
     {
-        try
-        {
-            var response =
-                await _authService.LoginAsync(request);
+        var response =
+            await _authService.LoginAsync(request);
 
-            return Ok(response);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpPost("refresh-token")]
     public async Task<ActionResult<AuthResponse>> RefreshToken(
         RefreshTokenRequest request)
     {
-        try
-        {
-            var response =
-                await _authService.RefreshTokenAsync(
-                    request.RefreshToken);
+        var response =
+            await _authService.RefreshTokenAsync(
+                request.RefreshToken);
 
-            return Ok(response);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [Authorize]
@@ -83,49 +53,29 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout(
         RefreshTokenRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            await _authService.LogoutAsync(
-                userId,
-                request.RefreshToken);
+        await _authService.LogoutAsync(
+            userId,
+            request.RefreshToken);
 
-            return Ok(new
-            {
-                message = "Logged out successfully."
-            });
-        }
-        catch (UnauthorizedAccessException ex)
+        return Ok(new
         {
-            return Unauthorized(new
-            {
-                message = ex.Message
-            });
-        }
+            message = "Logged out successfully."
+        });
     }
 
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<AuthResponse>> Me()
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _authService.GetCurrentUserAsync(
-                    userId);
+        var response =
+            await _authService.GetCurrentUserAsync(
+                userId);
 
-            return Ok(response);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     private Guid GetCurrentUserId()
@@ -134,7 +84,9 @@ public class AuthController : ControllerBase
             User.FindFirstValue(
                 ClaimTypes.NameIdentifier);
 
-        if (!Guid.TryParse(userIdValue, out var userId))
+        if (!Guid.TryParse(
+                userIdValue,
+                out var userId))
         {
             throw new UnauthorizedAccessException(
                 "Invalid user identity.");

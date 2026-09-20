@@ -13,8 +13,7 @@ public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;
 
-    public ProjectsController(
-        IProjectService projectService)
+    public ProjectsController(IProjectService projectService)
     {
         _projectService = projectService;
     }
@@ -51,24 +50,14 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<ProjectResponse>> GetById(
         Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _projectService.GetByIdAsync(
-                    userId,
-                    id);
+        var response =
+            await _projectService.GetByIdAsync(
+                userId,
+                id);
 
-            return Ok(response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpPut("{id:guid}")]
@@ -76,48 +65,27 @@ public class ProjectsController : ControllerBase
         Guid id,
         UpdateProjectRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _projectService.UpdateAsync(
-                    userId,
-                    id,
-                    request);
+        var response =
+            await _projectService.UpdateAsync(
+                userId,
+                id,
+                request);
 
-            return Ok(response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(
-        Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            await _projectService.DeleteAsync(
-                userId,
-                id);
+        await _projectService.DeleteAsync(
+            userId,
+            id);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
+        return NoContent();
     }
 
     private Guid GetCurrentUserId()

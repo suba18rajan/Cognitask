@@ -23,83 +23,46 @@ public class TasksController : ControllerBase
         Guid projectId,
         CreateTaskRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _taskService.CreateAsync(
-                    userId,
-                    projectId,
-                    request);
+        var response =
+            await _taskService.CreateAsync(
+                userId,
+                projectId,
+                request);
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = response.Id },
-                response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new
-            {
-                message = ex.Message
-            });
-        }
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = response.Id },
+            response);
     }
 
     [HttpGet("projects/{projectId:guid}/tasks")]
     public async Task<ActionResult<List<TaskResponse>>> GetByProject(
         Guid projectId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _taskService.GetByProjectAsync(
-                    userId,
-                    projectId);
+        var response =
+            await _taskService.GetByProjectAsync(
+                userId,
+                projectId);
 
-            return Ok(response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpGet("tasks/{id:guid}")]
     public async Task<ActionResult<TaskResponse>> GetById(
         Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _taskService.GetByIdAsync(
-                    userId,
-                    id);
+        var response =
+            await _taskService.GetByIdAsync(
+                userId,
+                id);
 
-            return Ok(response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpPut("tasks/{id:guid}")]
@@ -107,48 +70,27 @@ public class TasksController : ControllerBase
         Guid id,
         UpdateTaskRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _taskService.UpdateAsync(
-                    userId,
-                    id,
-                    request);
+        var response =
+            await _taskService.UpdateAsync(
+                userId,
+                id,
+                request);
 
-            return Ok(response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpDelete("tasks/{id:guid}")]
-    public async Task<IActionResult> Delete(
-        Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            await _taskService.DeleteAsync(
-                userId,
-                id);
+        await _taskService.DeleteAsync(
+            userId,
+            id);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
+        return NoContent();
     }
 
     [HttpPatch("tasks/{id:guid}/status")]
@@ -156,32 +98,15 @@ public class TasksController : ControllerBase
         Guid id,
         UpdateTaskStatusRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _taskService.UpdateStatusAsync(
-                    userId,
-                    id,
-                    request);
+        var response =
+            await _taskService.UpdateStatusAsync(
+                userId,
+                id,
+                request);
 
-            return Ok(response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     [HttpPatch("tasks/{id:guid}/priority")]
@@ -189,32 +114,15 @@ public class TasksController : ControllerBase
         Guid id,
         UpdateTaskPriorityRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
 
-            var response =
-                await _taskService.UpdatePriorityAsync(
-                    userId,
-                    id,
-                    request);
+        var response =
+            await _taskService.UpdatePriorityAsync(
+                userId,
+                id,
+                request);
 
-            return Ok(response);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new
-            {
-                message = ex.Message
-            });
-        }
+        return Ok(response);
     }
 
     private Guid GetCurrentUserId()
