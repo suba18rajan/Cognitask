@@ -82,6 +82,14 @@ builder.Services.AddScoped<
     IPasswordHasher<User>,
     PasswordHasher<User>>();
 
+builder.Services.AddScoped<
+    ITaskRepository,
+    TaskRepository>();
+
+builder.Services.AddScoped<
+    ITaskService,
+    TaskService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

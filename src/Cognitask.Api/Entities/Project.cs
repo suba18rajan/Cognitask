@@ -12,6 +12,9 @@ public class Project
 
     public User User { get; set; } = null!;
 
+    public ICollection<TaskItem> Tasks { get; set; }
+        = new List<TaskItem>();
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }

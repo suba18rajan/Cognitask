@@ -16,6 +16,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Project> Projects => Set<Project>();
 
+    public DbSet<TaskItem> Tasks => Set<TaskItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -81,6 +83,31 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(p => p.UserId);
+        });
+
+        modelBuilder.Entity<TaskItem>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+
+            entity.Property(t => t.Title)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(t => t.Description)
+                .HasMaxLength(2000);
+
+            entity.Property(t => t.Status)
+                .IsRequired();
+
+            entity.Property(t => t.Priority)
+                .IsRequired();
+
+            entity.HasOne(t => t.Project)
+                .WithMany(p => p.Tasks)
+                .HasForeignKey(t => t.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(t => t.ProjectId);
         });
     }
 }
