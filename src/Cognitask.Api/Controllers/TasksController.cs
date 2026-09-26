@@ -1,8 +1,10 @@
-﻿using System.Security.Claims;
+﻿using Cognitask.Api.Common;
 using Cognitask.Api.DTOs.Tasks;
 using Cognitask.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Cognitask.Api.Common;
 
 namespace Cognitask.Api.Controllers;
 
@@ -38,15 +40,19 @@ public class TasksController : ControllerBase
     }
 
     [HttpGet("projects/{projectId:guid}/tasks")]
-    public async Task<ActionResult<List<TaskResponse>>> GetByProject(
-        Guid projectId)
+    public async Task<ActionResult<PagedResult<TaskResponse>>> GetByProject(
+    Guid projectId,
+    int pageNumber = 1,
+    int pageSize = 10)
     {
         var userId = GetCurrentUserId();
 
         var response =
             await _taskService.GetByProjectAsync(
                 userId,
-                projectId);
+                projectId,
+                pageNumber,
+                pageSize);
 
         return Ok(response);
     }

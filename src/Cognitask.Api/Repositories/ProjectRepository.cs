@@ -24,13 +24,23 @@ public class ProjectRepository : IProjectRepository
                 p.UserId == userId);
     }
 
-    public async Task<List<Project>> GetAllAsync(
-        Guid userId)
+    public async Task<(List<Project> Items, int TotalCount)> GetAllAsync(
+                Guid userId,
+                int pageNumber,
+                int pageSize)
     {
-        return await _context.Projects
+        var query = _context.Projects
             .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return (items, totalCount);
     }
 
     public async Task AddAsync(Project project)

@@ -12,9 +12,11 @@ public interface ITaskRepository
         Guid taskId,
         Guid userId);
 
-    Task<List<TaskItem>> GetByProjectAsync(
-        Guid projectId,
-        Guid userId);
+    Task<(List<TaskItem> Items, int TotalCount)> GetByProjectAsync(
+     Guid projectId,
+     Guid userId,
+     int pageNumber,
+     int pageSize);
 
     Task AddAsync(TaskItem task);
 

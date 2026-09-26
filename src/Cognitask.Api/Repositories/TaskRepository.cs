@@ -35,16 +35,26 @@ public class TaskRepository : ITaskRepository
                 t.Project.UserId == userId);
     }
 
-    public async Task<List<TaskItem>> GetByProjectAsync(
+    public async Task<(List<TaskItem> Items, int TotalCount)> GetByProjectAsync(
         Guid projectId,
-        Guid userId)
+        Guid userId,
+        int pageNumber,
+        int pageSize)
     {
-        return await _context.Tasks
+        var query = _context.Tasks
             .Where(t =>
                 t.ProjectId == projectId &&
                 t.Project.UserId == userId)
-            .OrderByDescending(t => t.CreatedAt)
+            .OrderByDescending(t => t.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return (items, totalCount);
     }
 
     public async Task AddAsync(TaskItem task)

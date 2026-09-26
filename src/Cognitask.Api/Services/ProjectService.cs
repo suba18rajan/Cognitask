@@ -1,4 +1,5 @@
-﻿using Cognitask.Api.DTOs.Projects;
+﻿using Cognitask.Api.Common;
+using Cognitask.Api.DTOs.Projects;
 using Cognitask.Api.Entities;
 using Cognitask.Api.Repositories.Interfaces;
 using Cognitask.Api.Services.Interfaces;
@@ -35,15 +36,52 @@ public class ProjectService : IProjectService
         return MapToResponse(project);
     }
 
-    public async Task<List<ProjectResponse>> GetAllAsync(
-        Guid userId)
+    public async Task<PagedResult<ProjectResponse>> GetAllAsync(
+            Guid userId,
+            int pageNumber,
+            int pageSize)
     {
-        var projects =
-            await _projectRepository.GetAllAsync(userId);
+        if (pageNumber < 1)
+        {
+            throw new ArgumentException(
+                "Page number must be greater than 0.");
+        }
 
-        return projects
-            .Select(MapToResponse)
-            .ToList();
+        if (pageSize < 1 || pageSize > 100)
+        {
+            throw new ArgumentException(
+                "Page size must be between 1 and 100.");
+        }
+
+        var (projects, totalCount) =
+            await _projectRepository.GetAllAsync(
+                userId,
+                pageNumber,
+                pageSize);
+
+        var totalPages =
+            (int)Math.Ceiling(
+                totalCount / (double)pageSize);
+
+        return new PagedResult<ProjectResponse>
+        {
+            Items = projects
+                .Select(project => new ProjectResponse
+                {
+                    Id = project.Id,
+                    Name = project.Name,
+                    Description = project.Description,
+                    UserId = project.UserId,
+                    CreatedAt = project.CreatedAt,
+                    UpdatedAt = project.UpdatedAt
+                })
+                .ToList(),
+
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages
+        };
     }
 
     public async Task<ProjectResponse> GetByIdAsync(

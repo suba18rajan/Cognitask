@@ -3,6 +3,7 @@ using Cognitask.Api.DTOs.Projects;
 using Cognitask.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Cognitask.Api.Common;
 
 namespace Cognitask.Api.Controllers;
 
@@ -36,12 +37,17 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProjectResponse>>> GetAll()
+    public async Task<ActionResult<PagedResult<ProjectResponse>>> GetAll(
+    int pageNumber = 1,
+    int pageSize = 10)
     {
         var userId = GetCurrentUserId();
 
         var response =
-            await _projectService.GetAllAsync(userId);
+            await _projectService.GetAllAsync(
+                userId,
+                pageNumber,
+                pageSize);
 
         return Ok(response);
     }

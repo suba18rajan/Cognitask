@@ -4,9 +4,14 @@ namespace Cognitask.Api.Repositories.Interfaces;
 
 public interface IProjectRepository
 {
-    Task<Project?> GetByIdAsync(Guid id, Guid userId);
+    Task<Project?> GetByIdAsync(
+        Guid id,
+        Guid userId);
 
-    Task<List<Project>> GetAllAsync(Guid userId);
+    Task<(List<Project> Items, int TotalCount)> GetAllAsync(
+        Guid userId,
+        int pageNumber,
+        int pageSize);
 
     Task AddAsync(Project project);
 

@@ -1,4 +1,5 @@
 ﻿using Cognitask.Api.DTOs.Tasks;
+using Cognitask.Api.Common;
 
 namespace Cognitask.Api.Services.Interfaces;
 
@@ -9,9 +10,11 @@ public interface ITaskService
         Guid projectId,
         CreateTaskRequest request);
 
-    Task<List<TaskResponse>> GetByProjectAsync(
+    Task<PagedResult<TaskResponse>> GetByProjectAsync(
         Guid userId,
-        Guid projectId);
+        Guid projectId,
+        int pageNumber,
+        int pageSize);
 
     Task<TaskResponse> GetByIdAsync(
         Guid userId,

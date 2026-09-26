@@ -4,6 +4,7 @@ using Cognitask.Api.Repositories.Interfaces;
 using Cognitask.Api.Services.Interfaces;
 using TaskPriority = Cognitask.Api.Enums.TaskPriority;
 using TaskStatus = Cognitask.Api.Enums.TaskStatus;
+using Cognitask.Api.Common;
 
 namespace Cognitask.Api.Services;
 
@@ -58,10 +59,24 @@ public class TaskService : ITaskService
         return MapToResponse(task);
     }
 
-    public async Task<List<TaskResponse>> GetByProjectAsync(
-        Guid userId,
-        Guid projectId)
+    public async Task<PagedResult<TaskResponse>> GetByProjectAsync(
+    Guid userId,
+    Guid projectId,
+    int pageNumber,
+    int pageSize)
     {
+        if (pageNumber < 1)
+        {
+            throw new ArgumentException(
+                "Page number must be greater than 0.");
+        }
+
+        if (pageSize < 1 || pageSize > 100)
+        {
+            throw new ArgumentException(
+                "Page size must be between 1 and 100.");
+        }
+
         var project =
             await _taskRepository.GetProjectForUserAsync(
                 projectId,
@@ -73,14 +88,38 @@ public class TaskService : ITaskService
                 "Project not found.");
         }
 
-        var tasks =
+        var (tasks, totalCount) =
             await _taskRepository.GetByProjectAsync(
                 projectId,
-                userId);
+                userId,
+                pageNumber,
+                pageSize);
 
-        return tasks
-            .Select(MapToResponse)
-            .ToList();
+        var totalPages =
+            (int)Math.Ceiling(
+                totalCount / (double)pageSize);
+
+        return new PagedResult<TaskResponse>
+        {
+            Items = tasks
+                .Select(task => new TaskResponse
+                {
+                    Id = task.Id,
+                    Title = task.Title,
+                    Description = task.Description,
+                    Status = task.Status,
+                    Priority = task.Priority,
+                    ProjectId = task.ProjectId,
+                    CreatedAt = task.CreatedAt,
+                    UpdatedAt = task.UpdatedAt
+                })
+                .ToList(),
+
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages
+        };
     }
 
     public async Task<TaskResponse> GetByIdAsync(
