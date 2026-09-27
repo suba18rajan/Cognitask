@@ -18,18 +18,22 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly JwtSettings _jwtSettings;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository userRepository,
         IPasswordHasher<User> passwordHasher,
-        IOptions<JwtSettings> jwtSettings)
+        IOptions<JwtSettings> jwtSettings,
+        ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _jwtSettings = jwtSettings.Value;
+        _logger = logger;
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResponse> RegisterAsync(
+        RegisterRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
 
@@ -58,18 +62,25 @@ public class AuthService : IAuthService
 
         var tokenData = CreateRefreshToken(user.Id);
 
-        await _userRepository.AddRefreshTokenAsync(tokenData.RefreshToken);
+        await _userRepository.AddRefreshTokenAsync(
+            tokenData.RefreshToken);
 
         await _userRepository.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "User registered successfully. UserId: {UserId}",
+            user.Id);
 
         return CreateAuthResponse(user, tokenData);
     }
 
-    public async Task<AuthResponse> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginAsync(
+        LoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
 
-        var user = await _userRepository.GetByEmailAsync(email);
+        var user =
+            await _userRepository.GetByEmailAsync(email);
 
         if (user is null)
         {
@@ -98,6 +109,10 @@ public class AuthService : IAuthService
 
         await _userRepository.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "User logged in successfully. UserId: {UserId}",
+            user.Id);
+
         return CreateAuthResponse(user, tokenData);
     }
 
@@ -107,7 +122,8 @@ public class AuthService : IAuthService
         var tokenHash = HashToken(refreshToken);
 
         var storedToken =
-            await _userRepository.GetRefreshTokenAsync(tokenHash);
+            await _userRepository.GetRefreshTokenAsync(
+                tokenHash);
 
         if (storedToken is null)
         {
@@ -127,15 +143,20 @@ public class AuthService : IAuthService
                 "Refresh token has expired.");
         }
 
-        await _userRepository.RevokeRefreshTokenAsync(storedToken);
+        await _userRepository.RevokeRefreshTokenAsync(
+            storedToken);
 
-        var newTokenData = CreateRefreshToken(
-            storedToken.UserId);
+        var newTokenData =
+            CreateRefreshToken(storedToken.UserId);
 
         await _userRepository.AddRefreshTokenAsync(
             newTokenData.RefreshToken);
 
         await _userRepository.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Refresh token rotated successfully. UserId: {UserId}",
+            storedToken.UserId);
 
         return CreateAuthResponse(
             storedToken.User,
@@ -149,7 +170,8 @@ public class AuthService : IAuthService
         var tokenHash = HashToken(refreshToken);
 
         var storedToken =
-            await _userRepository.GetRefreshTokenAsync(tokenHash);
+            await _userRepository.GetRefreshTokenAsync(
+                tokenHash);
 
         if (storedToken is null)
         {
@@ -168,6 +190,10 @@ public class AuthService : IAuthService
                 storedToken);
 
             await _userRepository.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "User logged out successfully. UserId: {UserId}",
+                userId);
         }
     }
 
@@ -225,7 +251,9 @@ public class AuthService : IAuthService
                 _jwtSettings.AccessTokenExpirationMinutes);
 
         var accessToken =
-            GenerateAccessToken(user, expiresAtUtc);
+            GenerateAccessToken(
+                user,
+                expiresAtUtc);
 
         return new AuthResponse
         {

@@ -25,7 +25,9 @@ public class GlobalExceptionHandlingMiddleware
         {
             _logger.LogError(
                 ex,
-                "An unhandled exception occurred.");
+                "Unhandled exception occurred. Method: {Method}, Path: {Path}",
+                context.Request.Method,
+                context.Request.Path);
 
             await HandleExceptionAsync(context, ex);
         }

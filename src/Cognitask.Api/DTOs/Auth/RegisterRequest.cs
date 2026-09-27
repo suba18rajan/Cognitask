@@ -1,14 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Cognitask.Api.Common.Validation;
 
 namespace Cognitask.Api.DTOs.Auth;
 
 public class RegisterRequest
 {
     [Required]
+    [NotEmpty]
     [MaxLength(100)]
     public string FirstName { get; set; } = string.Empty;
 
     [Required]
+    [NotEmpty]
     [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
 

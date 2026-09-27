@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Cognitask.Api.Common.Validation;
 
 namespace Cognitask.Api.DTOs.Projects;
 
 public class CreateProjectRequest
 {
     [Required]
+    [NotEmpty]
     [MaxLength(150)]
     public string Name { get; set; } = string.Empty;
 

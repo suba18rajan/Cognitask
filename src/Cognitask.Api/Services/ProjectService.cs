@@ -9,11 +9,14 @@ namespace Cognitask.Api.Services;
 public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _projectRepository;
+    private readonly ILogger<ProjectService> _logger;
 
     public ProjectService(
-        IProjectRepository projectRepository)
+        IProjectRepository projectRepository,
+        ILogger<ProjectService> logger)
     {
         _projectRepository = projectRepository;
+        _logger = logger;
     }
 
     public async Task<ProjectResponse> CreateAsync(
@@ -33,13 +36,18 @@ public class ProjectService : IProjectService
         await _projectRepository.AddAsync(project);
         await _projectRepository.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Project created. ProjectId: {ProjectId}, UserId: {UserId}",
+            project.Id,
+            userId);
+
         return MapToResponse(project);
     }
 
     public async Task<PagedResult<ProjectResponse>> GetAllAsync(
-            Guid userId,
-            int pageNumber,
-            int pageSize)
+        Guid userId,
+        int pageNumber,
+        int pageSize)
     {
         if (pageNumber < 1)
         {
@@ -66,15 +74,7 @@ public class ProjectService : IProjectService
         return new PagedResult<ProjectResponse>
         {
             Items = projects
-                .Select(project => new ProjectResponse
-                {
-                    Id = project.Id,
-                    Name = project.Name,
-                    Description = project.Description,
-                    UserId = project.UserId,
-                    CreatedAt = project.CreatedAt,
-                    UpdatedAt = project.UpdatedAt
-                })
+                .Select(MapToResponse)
                 .ToList(),
 
             PageNumber = pageNumber,
@@ -125,6 +125,11 @@ public class ProjectService : IProjectService
         await _projectRepository.UpdateAsync(project);
         await _projectRepository.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Project updated. ProjectId: {ProjectId}, UserId: {UserId}",
+            projectId,
+            userId);
+
         return MapToResponse(project);
     }
 
@@ -145,6 +150,11 @@ public class ProjectService : IProjectService
 
         await _projectRepository.DeleteAsync(project);
         await _projectRepository.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Project deleted. ProjectId: {ProjectId}, UserId: {UserId}",
+            projectId,
+            userId);
     }
 
     private static ProjectResponse MapToResponse(

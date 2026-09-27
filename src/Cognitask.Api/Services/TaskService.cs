@@ -1,20 +1,24 @@
-﻿using Cognitask.Api.DTOs.Tasks;
+﻿using Cognitask.Api.Common;
+using Cognitask.Api.DTOs.Tasks;
 using Cognitask.Api.Entities;
 using Cognitask.Api.Repositories.Interfaces;
 using Cognitask.Api.Services.Interfaces;
 using TaskPriority = Cognitask.Api.Enums.TaskPriority;
 using TaskStatus = Cognitask.Api.Enums.TaskStatus;
-using Cognitask.Api.Common;
 
 namespace Cognitask.Api.Services;
 
 public class TaskService : ITaskService
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly ILogger<TaskService> _logger;
 
-    public TaskService(ITaskRepository taskRepository)
+    public TaskService(
+        ITaskRepository taskRepository,
+        ILogger<TaskService> logger)
     {
         _taskRepository = taskRepository;
+        _logger = logger;
     }
 
     public async Task<TaskResponse> CreateAsync(
@@ -38,7 +42,7 @@ public class TaskService : ITaskService
                 request.Priority))
         {
             throw new ArgumentException(
-                "Invalid priority.");
+                "Invalid task priority.");
         }
 
         var task = new TaskItem
@@ -56,14 +60,20 @@ public class TaskService : ITaskService
         await _taskRepository.AddAsync(task);
         await _taskRepository.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Task created. TaskId: {TaskId}, ProjectId: {ProjectId}, UserId: {UserId}",
+            task.Id,
+            projectId,
+            userId);
+
         return MapToResponse(task);
     }
 
     public async Task<PagedResult<TaskResponse>> GetByProjectAsync(
-    Guid userId,
-    Guid projectId,
-    int pageNumber,
-    int pageSize)
+        Guid userId,
+        Guid projectId,
+        int pageNumber,
+        int pageSize)
     {
         if (pageNumber < 1)
         {
@@ -102,17 +112,7 @@ public class TaskService : ITaskService
         return new PagedResult<TaskResponse>
         {
             Items = tasks
-                .Select(task => new TaskResponse
-                {
-                    Id = task.Id,
-                    Title = task.Title,
-                    Description = task.Description,
-                    Status = task.Status,
-                    Priority = task.Priority,
-                    ProjectId = task.ProjectId,
-                    CreatedAt = task.CreatedAt,
-                    UpdatedAt = task.UpdatedAt
-                })
+                .Select(MapToResponse)
                 .ToList(),
 
             PageNumber = pageNumber,
@@ -163,6 +163,11 @@ public class TaskService : ITaskService
         await _taskRepository.UpdateAsync(task);
         await _taskRepository.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Task updated. TaskId: {TaskId}, UserId: {UserId}",
+            taskId,
+            userId);
+
         return MapToResponse(task);
     }
 
@@ -183,6 +188,11 @@ public class TaskService : ITaskService
 
         await _taskRepository.DeleteAsync(task);
         await _taskRepository.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Task deleted. TaskId: {TaskId}, UserId: {UserId}",
+            taskId,
+            userId);
     }
 
     public async Task<TaskResponse> UpdateStatusAsync(
@@ -195,7 +205,7 @@ public class TaskService : ITaskService
                 request.Status))
         {
             throw new ArgumentException(
-                "Invalid status.");
+                "Invalid task status.");
         }
 
         var task =
@@ -215,6 +225,12 @@ public class TaskService : ITaskService
         await _taskRepository.UpdateAsync(task);
         await _taskRepository.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Task status updated. TaskId: {TaskId}, UserId: {UserId}, Status: {Status}",
+            taskId,
+            userId,
+            task.Status);
+
         return MapToResponse(task);
     }
 
@@ -228,7 +244,7 @@ public class TaskService : ITaskService
                 request.Priority))
         {
             throw new ArgumentException(
-                "Invalid priority.");
+                "Invalid task priority.");
         }
 
         var task =
@@ -247,6 +263,12 @@ public class TaskService : ITaskService
 
         await _taskRepository.UpdateAsync(task);
         await _taskRepository.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Task priority updated. TaskId: {TaskId}, UserId: {UserId}, Priority: {Priority}",
+            taskId,
+            userId,
+            task.Priority);
 
         return MapToResponse(task);
     }
