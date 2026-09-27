@@ -253,6 +253,47 @@ public class AuthServiceTests
     }
 
     [Fact]
+    public async Task RefreshTokenAsync_ShouldRejectPreviouslyRevokedToken()
+    {
+        var refreshTokenValue = "revoked-refresh-token";
+
+        var storedToken = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = HashToken(refreshTokenValue),
+            UserId = Guid.NewGuid(),
+            CreatedAtUtc = DateTime.UtcNow.AddDays(-1),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(6),
+            RevokedAtUtc = DateTime.UtcNow.AddMinutes(-5),
+            User = new User
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Test",
+                LastName = "User",
+                Email = "test@example.com",
+                Role = "User"
+            }
+        };
+
+        _userRepositoryMock
+            .Setup(r => r.GetRefreshTokenAsync(
+                HashToken(refreshTokenValue)))
+            .ReturnsAsync(storedToken);
+
+        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => _authService.RefreshTokenAsync(refreshTokenValue));
+
+        Assert.Equal(
+            "Refresh token has been revoked.",
+            exception.Message);
+
+        _userRepositoryMock.Verify(
+            r => r.AddRefreshTokenAsync(
+                It.IsAny<RefreshToken>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task RefreshTokenAsync_ShouldRotateToken()
     {
         // Arrange
