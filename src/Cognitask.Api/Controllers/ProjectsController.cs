@@ -7,6 +7,9 @@ using Cognitask.Api.Common;
 
 namespace Cognitask.Api.Controllers;
 
+/// <summary>
+/// Provides CRUD operations for projects owned by the authenticated user.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -18,6 +21,15 @@ public class ProjectsController : ControllerBase
     {
         _projectService = projectService;
     }
+
+    /// <summary>
+    /// Creates a new project for the authenticated user.
+    /// </summary>
+    /// <param name="request">Project creation details.</param>
+    /// <returns>The newly created project.</returns>
+    /// <response code="201">Project created successfully.</response>
+    /// <response code="400">Validation failed.</response>
+    /// <response code="401">User is not authenticated.</response>
 
     [HttpPost]
     public async Task<ActionResult<ProjectResponse>> Create(
@@ -36,6 +48,16 @@ public class ProjectsController : ControllerBase
             response);
     }
 
+    /// <summary>
+    /// Returns a paginated list of projects owned by the authenticated user.
+    /// </summary>
+    /// <param name="pageNumber">Page number starting from 1.</param>
+    /// <param name="pageSize">Number of projects per page.</param>
+    /// <returns>Paginated project results.</returns>
+    /// <response code="200">Projects returned successfully.</response>
+    /// <response code="400">Invalid pagination parameters.</response>
+    /// <response code="401">User is not authenticated.</response>
+    
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProjectResponse>>> GetAll(
     int pageNumber = 1,
@@ -52,6 +74,15 @@ public class ProjectsController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// Gets a project owned by the authenticated user.
+    /// </summary>
+    /// <param name="id">Project identifier.</param>
+    /// <returns>The requested project.</returns>
+    /// <response code="200">Project found.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="404">Project not found.</response>
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProjectResponse>> GetById(
         Guid id)
@@ -65,6 +96,17 @@ public class ProjectsController : ControllerBase
 
         return Ok(response);
     }
+
+    /// <summary>
+    /// Updates a project belonging to the authenticated user.
+    /// </summary>
+    /// <param name="id">Project identifier.</param>
+    /// <param name="request">Updated project details.</param>
+    /// <returns>The updated project.</returns>
+    /// <response code="200">Project updated successfully.</response>
+    /// <response code="400">Request validation failed.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="404">Project was not found.</response>
 
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ProjectResponse>> Update(
@@ -81,6 +123,14 @@ public class ProjectsController : ControllerBase
 
         return Ok(response);
     }
+
+    /// <summary>
+    /// Deletes a project belonging to the authenticated user.
+    /// </summary>
+    /// <param name="id">Project identifier.</param>
+    /// <response code="204">Project deleted successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="404">Project was not found.</response>
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)

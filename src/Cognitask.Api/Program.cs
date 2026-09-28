@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Cognitask.Api.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.RateLimiting;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,8 +77,32 @@ builder.Services.AddScoped<ITaskRepository,TaskRepository>();
 builder.Services.AddScoped<ITaskService,    TaskService>();
 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
+    // XML documentation
+    var xmlFile =
+        $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+
+    var xmlPath =
+        Path.Combine(
+            AppContext.BaseDirectory,
+            xmlFile);
+
+    options.IncludeXmlComments(xmlPath);
+
+    // API information
+    options.SwaggerDoc(
+        "v1",
+        new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "Cognitask API",
+            Version = "v1",
+            Description =
+                "REST API for Cognitask task and knowledge management."
+        });
+
+    // JWT Bearer authentication
     options.AddSecurityDefinition(
         "Bearer",
         new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -88,7 +113,7 @@ builder.Services.AddSwaggerGen(options =>
             BearerFormat = "JWT",
             In = Microsoft.OpenApi.Models.ParameterLocation.Header,
             Description =
-                "Enter your JWT token. Example: Bearer {token}"
+                "Enter your JWT access token."
         });
 
     options.AddSecurityRequirement(
@@ -99,11 +124,11 @@ builder.Services.AddSwaggerGen(options =>
                 {
                     Reference =
                         new Microsoft.OpenApi.Models.OpenApiReference
-                    {
-                        Type =
-                            Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
+                        {
+                            Type =
+                                Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
                 },
                 Array.Empty<string>()
             }
