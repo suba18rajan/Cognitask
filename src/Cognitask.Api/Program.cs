@@ -9,10 +9,24 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Cognitask.Api.Middleware;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins(
+                "https://localhost:4200",
+                "http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -96,6 +110,34 @@ builder.Services.AddSwaggerGen(options =>
         });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter =
+        PartitionedRateLimiter.Create<HttpContext, string>(
+            httpContext =>
+            {
+                var key =
+                    httpContext.User.Identity?.IsAuthenticated == true
+                        ? httpContext.User.Identity.Name
+                            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                            ?? "anonymous"
+                        : httpContext.Connection.RemoteIpAddress?.ToString()
+                            ?? "anonymous";
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    key,
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 100,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    });
+            });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -110,6 +152,12 @@ if (!app.Environment.IsEnvironment("Testing"))
 }
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+app.UseCors("FrontendPolicy");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 
